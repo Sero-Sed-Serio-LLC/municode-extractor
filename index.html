@@ -25,9 +25,8 @@
             const parser = new DOMParser();
             const doc = parser.parseFromString(htmlContent, 'text/html');
 
-            // Find custom elements using querySelectorAll
-            const chunks = doc.querySelectorAll('div.chunk');
             const jsonOutput = [];
+            const chunks = doc.querySelectorAll('div.chunk');
 
             chunks.forEach(chunk => {
                 const categoryElement = chunk.querySelector('h2.chunk-title-wrapper div.chunk-title');
@@ -36,7 +35,7 @@
 
                 const category = categoryElement?.innerText.trim() || null;
                 const title = titleElement?.innerText.trim() || null;
-                const body = bodyElement?.outerHTML || null;
+                const body = bodyElement?.innerHTML.trim() || null;
 
                 if (category && title && body) {
                     jsonOutput.push({
