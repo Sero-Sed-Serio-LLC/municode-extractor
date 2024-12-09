@@ -25,13 +25,18 @@
             const parser = new DOMParser();
             const doc = parser.parseFromString(htmlContent, 'text/html');
 
-            const chunks = doc.querySelectorAll('mcc-codes-content-chunk');
+            // Find custom elements using querySelectorAll
+            const chunks = doc.querySelectorAll('div.chunk');
             const jsonOutput = [];
 
             chunks.forEach(chunk => {
-                const category = chunk.querySelector('h2.chunk-title')?.innerText.trim() || null;
-                const title = chunk.querySelector('h3.chunk-title')?.innerText.trim() || null;
-                const body = chunk.querySelector('div.chunk-content-wrapper')?.outerHTML || null;
+                const categoryElement = chunk.querySelector('h2.chunk-title-wrapper div.chunk-title');
+                const titleElement = chunk.querySelector('h3.chunk-title-wrapper div.chunk-title');
+                const bodyElement = chunk.querySelector('div.chunk-content-wrapper');
+
+                const category = categoryElement?.innerText.trim() || null;
+                const title = titleElement?.innerText.trim() || null;
+                const body = bodyElement?.outerHTML || null;
 
                 if (category && title && body) {
                     jsonOutput.push({
