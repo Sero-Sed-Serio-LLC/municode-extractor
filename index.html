@@ -22,36 +22,36 @@
                 return;
             }
 
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(htmlContent, 'text/html');
+            // Regular expressions for extraction
+            const categoryRegex = /<h2[^>]*class="chunk-title-wrapper"[^>]*>\s*<div[^>]*class="chunk-title"[^>]*>([^<]+)<\/div>/g;
+            const titleRegex = /<h3[^>]*class="chunk-title-wrapper"[^>]*>\s*<div[^>]*class="chunk-title"[^>]*>([^<]+)<\/div>/g;
+            const bodyRegex = /<div[^>]*class="chunk-content-wrapper"[^>]*>([\s\S]*?)<\/div>/g;
+
+            // Match and extract data
+            const categories = [...htmlContent.matchAll(categoryRegex)];
+            const titles = [...htmlContent.matchAll(titleRegex)];
+            const bodies = [...htmlContent.matchAll(bodyRegex)];
 
             const jsonOutput = [];
-            const chunks = doc.querySelectorAll('div.chunk');
+            for (let i = 0; i < Math.max(categories.length, titles.length, bodies.length); i++) {
+                const category = categories[i]?.[1]?.trim() || "Uncategorized";
+                const title = titles[i]?.[1]?.trim() || "Untitled";
+                const body = bodies[i]?.[1]?.trim() || "No content available";
 
-            chunks.forEach(chunk => {
-                const categoryElement = chunk.querySelector('h2.chunk-title-wrapper div.chunk-title');
-                const titleElement = chunk.querySelector('h3.chunk-title-wrapper div.chunk-title');
-                const bodyElement = chunk.querySelector('div.chunk-content-wrapper');
-
-                const category = categoryElement?.innerText.trim() || null;
-                const title = titleElement?.innerText.trim() || null;
-                const body = bodyElement?.innerHTML.trim() || null;
-
-                if (category && title && body) {
-                    jsonOutput.push({
-                        type_id: 1870,
-                        category,
-                        title,
-                        body
-                    });
-                }
-            });
+                jsonOutput.push({
+                    type_id: 1870,
+                    category,
+                    title,
+                    body
+                });
+            }
 
             if (jsonOutput.length === 0) {
                 alert("No valid data found in the provided HTML.");
                 return;
             }
 
+            // Prepare JSON file for download
             const blob = new Blob([JSON.stringify(jsonOutput, null, 4)], { type: "application/json" });
             const downloadLink = document.getElementById('downloadLink');
             downloadLink.href = URL.createObjectURL(blob);
