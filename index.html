@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML to JSON Converter</title>
+</head>
+<body>
+    <h1>HTML to JSON Converter</h1>
+    <textarea id="htmlInput" rows="15" cols="80" placeholder="Paste your HTML here"></textarea>
+    <br>
+    <button id="convertButton">Convert to JSON</button>
+    <br>
+    <a id="downloadLink" style="display:none;">Download JSON</a>
+
+    <script>
+        document.getElementById('convertButton').addEventListener('click', () => {
+            const htmlContent = document.getElementById('htmlInput').value;
+
+            if (!htmlContent.trim()) {
+                alert("Please paste the HTML content into the text box.");
+                return;
+            }
+
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlContent, 'text/html');
+
+            const chunks = doc.querySelectorAll('mcc-codes-content-chunk');
+            const jsonOutput = [];
+
+            chunks.forEach(chunk => {
+                const category = chunk.querySelector('h2.chunk-title')?.innerText.trim() || null;
+                const title = chunk.querySelector('h3.chunk-title')?.innerText.trim() || null;
+                const body = chunk.querySelector('div.chunk-content-wrapper')?.outerHTML || null;
+
+                if (category && title && body) {
+                    jsonOutput.push({
+                        type_id: 1870,
+                        category,
+                        title,
+                        body
+                    });
+                }
+            });
+
+            if (jsonOutput.length === 0) {
+                alert("No valid data found in the provided HTML.");
+                return;
+            }
+
+            const blob = new Blob([JSON.stringify(jsonOutput, null, 4)], { type: "application/json" });
+            const downloadLink = document.getElementById('downloadLink');
+            downloadLink.href = URL.createObjectURL(blob);
+            downloadLink.download = "converted_data.json";
+            downloadLink.style.display = "inline";
+            downloadLink.innerText = "Download JSON";
+        });
+    </script>
+</body>
+</html>
