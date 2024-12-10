@@ -35,18 +35,18 @@
             let currentCategory = "Uncategorized";
 
             const jsonOutput = [];
-            for (let i = 0; i < Math.max(categories.length, titles.length, bodies.length); i++) {
-                const category = categories[i]?.[1]?.trim()
-
-                if (categoryMatch) {
-                    currentCategory = categoryMatch[1].trim();
+            for (let i = 0; i < Math.max(titles.length, bodies.length); i++) {
+                // Update the category only if a new one is found
+                if (categories[i]) {
+                    currentCategory = categories[i][1].trim();
                 }
+
                 const title = titles[i]?.[1]?.trim() || "Untitled";
                 const body = bodies[i]?.[1]?.trim() || "No content available";
 
                 jsonOutput.push({
                     type_id: 1870,
-                    category,
+                    category: currentCategory,
                     title,
                     body
                 });
