@@ -1,77 +1,64 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML to JSON Converter</title>
-</head>
-<body>
-    <h1>HTML to JSON Converter</h1>
-    <textarea id="htmlInput" rows="15" cols="80" placeholder="Paste your HTML here"></textarea>
-    <br>
-    <button id="convertButton">Convert to JSON</button>
-    <br>
-    <a id="downloadLink" style="display:none;">Download JSON</a>
+<script>
+    document.getElementById('convertButton').addEventListener('click', () => {
+        const htmlContent = document.getElementById('htmlInput').value;
 
-    <script>
-        document.getElementById('convertButton').addEventListener('click', () => {
-            const htmlContent = document.getElementById('htmlInput').value;
+        if (!htmlContent.trim()) {
+            alert("Please paste the HTML content into the text box.");
+            return;
+        }
 
-            if (!htmlContent.trim()) {
-                alert("Please paste the HTML content into the text box.");
-                return;
+        // Regular expressions for extraction
+        const chunkRegex = /<div[^>]*class="chunk"[^>]*>([\s\S]*?)<\/div>/g;
+        const categoryRegex = /<h2[^>]*class="chunk-title-wrapper"[^>]*>\s*<div[^>]*class="chunk-title"[^>]*>([^<]+)<\/div>/;
+        const titleRegex = /<h3[^>]*class="chunk-title-wrapper"[^>]*>\s*<div[^>]*class="chunk-title"[^>]*>([^<]+)<\/div>/;
+        const bodyRegex = /<div[^>]*class="chunk-content-wrapper"[^>]*>([\s\S]*?)<\/div>/;
+
+        const chunks = [...htmlContent.matchAll(chunkRegex)];
+        console.log("Chunks Found:", chunks);
+
+        const jsonOutput = [];
+        let currentCategory = "Uncategorized";
+
+        chunks.forEach(chunk => {
+            const chunkContent = chunk[1];
+            console.log("Processing Chunk:", chunkContent);
+
+            // Update category if a new one is found
+            const categoryMatch = chunkContent.match(categoryRegex);
+            if (categoryMatch) {
+                currentCategory = categoryMatch[1].trim();
+                console.log("Updated Category:", currentCategory);
             }
 
-            // Regular expressions for extraction
-            const chunkRegex = /<div[^>]*class="chunk"[^>]*>([\s\S]*?)<\/div>/g;
-            const categoryRegex = /<h2[^>]*class="chunk-title-wrapper"[^>]*>\s*<div[^>]*class="chunk-title"[^>]*>([^<]+)<\/div>/;
-            const titleRegex = /<h3[^>]*class="chunk-title-wrapper"[^>]*>\s*<div[^>]*class="chunk-title"[^>]*>([^<]+)<\/div>/;
-            const bodyRegex = /<div[^>]*class="chunk-content-wrapper"[^>]*>([\s\S]*?)<\/div>/;
+            // Extract title and body for the current chunk
+            const titleMatch = chunkContent.match(titleRegex);
+            const bodyMatch = chunkContent.match(bodyRegex);
 
-            // Match all chunks
-            const chunks = [...htmlContent.matchAll(chunkRegex)];
+            const title = titleMatch?.[1]?.trim() || "Untitled";
+            const body = bodyMatch?.[1]?.trim() || "No content available";
 
-            const jsonOutput = [];
-            let currentCategory = "Uncategorized";
+            console.log("Extracted Title:", title);
+            console.log("Extracted Body:", body);
 
-            chunks.forEach(chunk => {
-                const chunkContent = chunk[1];
-
-                // Update category if a new one is found
-                const categoryMatch = chunkContent.match(categoryRegex);
-                if (categoryMatch) {
-                    currentCategory = categoryMatch[1].trim();
-                }
-
-                // Extract title and body for the current chunk
-                const titleMatch = chunkContent.match(titleRegex);
-                const bodyMatch = chunkContent.match(bodyRegex);
-
-                const title = titleMatch?.[1]?.trim() || "Untitled";
-                const body = bodyMatch?.[1]?.trim() || "No content available";
-
-                // Add to JSON output
-                jsonOutput.push({
-                    type_id: 1870,
-                    category: currentCategory,
-                    title,
-                    body
-                });
+            // Add to JSON output
+            jsonOutput.push({
+                type_id: 1870,
+                category: currentCategory,
+                title,
+                body
             });
-
-            if (jsonOutput.length === 0) {
-                alert("No valid data found in the provided HTML.");
-                return;
-            }
-
-            // Prepare JSON file for download
-            const blob = new Blob([JSON.stringify(jsonOutput, null, 4)], { type: "application/json" });
-            const downloadLink = document.getElementById('downloadLink');
-            downloadLink.href = URL.createObjectURL(blob);
-            downloadLink.download = "converted_data.json";
-            downloadLink.style.display = "inline";
-            downloadLink.innerText = "Download JSON";
         });
-    </script>
-</body>
-</html>
+
+        if (jsonOutput.length === 0) {
+            alert("No valid data found in the provided HTML.");
+            return;
+        }
+
+        const blob = new Blob([JSON.stringify(jsonOutput, null, 4)], { type: "application/json" });
+        const downloadLink = document.getElementById('downloadLink');
+        downloadLink.href = URL.createObjectURL(blob);
+        downloadLink.download = "converted_data.json";
+        downloadLink.style.display = "inline";
+        downloadLink.innerText = "Download JSON";
+    });
+</script>
